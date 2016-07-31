@@ -1,3 +1,1 @@
-import redux_actionize from './actionize'
-
-export default redux_actionize
+module.exports = require('./es5')
