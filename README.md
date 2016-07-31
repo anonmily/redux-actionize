@@ -17,7 +17,7 @@ Easier Redux Action/Reducer creation. Create actions and reducers all at once, i
 ## Installation - Node
 To install as a Node package, simply install via npm:
 
-    npm install redux-actionize
+	npm install redux-actionize
 
 Then, you can import redux-actionize into your Redux project (e.g. browserify, webpack, etc).
 
@@ -41,10 +41,10 @@ First, let's declare our new actionized state. We'll be defining the actions cre
 	var ApplicationState = redux_actionize(
 		'application', 
 		{
-            user: null,
-            token: null,
-            is_authorized: null,
-        }
+			user: null,
+			token: null,
+			is_authorized: null,
+		}
 	)
 
 	export default ApplicationState
@@ -53,10 +53,10 @@ First, let's declare our new actionized state. We'll be defining the actions cre
 			creator: (user, token) => { return { user, token } },
 			reducer: function(state, action){
 				return _.assign({}, state, {
-	                user: action.user,
-	                token: action.token,
-	                is_authorized: true,
-	            })
+					user: action.user,
+					token: action.token,
+					is_authorized: true,
+				})
 			}
 		})
 		.register({
@@ -64,10 +64,10 @@ First, let's declare our new actionized state. We'll be defining the actions cre
 			creator: null,
 			reducer: function(state, action){
 				return _.assign({}, state, {
-	                user: null,
-	                is_authorized: false,
-	                token: null,
-	            })
+					user: null,
+					is_authorized: false,
+					token: null,
+				})
 			}
 		})
 
@@ -147,3 +147,4 @@ Note: Action names are not case sensitive and will all be converted to lowercase
 | Version | Notes                                                                                                                                                                            |
 |---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | _1.0.0_   | Initial release |
+| _1.0.2_   | Minor README and package.json fixes |
