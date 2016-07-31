@@ -30,14 +30,30 @@ By default, the ES5 transpiled version is exported, but you can use the original
 
 --------------------------------------
 
-## Usage
+## Terms - Managing State
 
-First, let's declare our new actionized state. We'll be defining the actions creators and reducers all in one place, so it's easy to see both the trigger and the intended result of the action.
+I like to divide up different parts of my state management as follows, in order of increasing abstraction:
+
+1. **API Models** - Abstracts out backend API AJAX requests, so you can change your API routes/definitions all in one place (and share it between projects that use the same API).
+2. **Reactions** - Definitions of the actions and their expected reactions/effects on the application state.
+3. **State Models** - Methods that your components will use to do things that change state, request data (and change state), etc. These state models will use **API Models** to actually interact with the backend API and **Reactions** to manipulate and incorporate data from the API into the application state.
+
+![Managing State with Redux and Redux Actionize](/redux_actionize_model.png)
+
+--------------------------------------
+
+## Reaction Definition
+
+First, let's declare a new **Reaction Definition** for our application state (which will be mounted at state.application). 
+
+We'll be defining the actions creators and reducers all in one place, so it's easy to see both the trigger and the intended result of the action.
+
+	// application_state.js
 
 	import _ from 'lodash'
 	import redux_actionize from 'redux-actionize'
 	
-	// redux_actionize takes the mountpoint/namespace name, and the initial state as parameters
+	// redux_actionize takes the mountpoint/namespace name, and the initial state as parameters, returning a new Reaction Definition
 	var ApplicationState = redux_actionize(
 		'application', 
 		{
@@ -46,7 +62,7 @@ First, let's declare our new actionized state. We'll be defining the actions cre
 			is_authorized: null,
 		}
 	)
-
+	
 	export default ApplicationState
 		.register({
 			action: 'LOGIN_SUCCESS',
@@ -71,9 +87,11 @@ First, let's declare our new actionized state. We'll be defining the actions cre
 			}
 		})
 
-If the creator is falsy/null, then it will be as if function(){ return {} } were provided as the creator, and no extra data will be added to the generated action. Thus, for the 'LOGIN_FAILURE' action/event defined above, the generated action object will be { type: 'applicatinon_login_failure' }.
+If the creator is falsy/null, then it will be as if function(){ return {} } were provided as the creator, and no extra data will be added to the generated action. Thus, for the 'LOGIN_FAILURE' action/event defined above, the generated action object will be { type: 'application_login_failure' }.
 
-Then, let's add the generated reducer for this actionized state to our root reducer.
+Then, let's add the automatically generated reducer for this **State Reaction** to our root reducer.
+
+	// redux/index.js
 
 	import { combineReducers } from 'redux'
 	import ApplicationState from './application_state'
@@ -81,7 +99,7 @@ Then, let's add the generated reducer for this actionized state to our root redu
 			application: ApplicationState.get_reducer()
 		})
 
-We can use and dispatch the action creators directly, one by one:
+We can then use and dispatch the action creators directly, one by one:
 
 	import ApplicationState from './application_state'
 	
@@ -93,10 +111,16 @@ Or we can pass in a dispatch function to **get_actions**, which will automatical
 	import ApplicationState from './application_state'
 	const Application = ApplicationState.get_actions(dispatch)
     
-	Application.login_success( result.user, result.token )
+	Application.login_success( user, token )
 	Application.login_failure()
 
-Rather than passing dispatch through my components, I like to have a separate model that deals with dispatch, API calls, etc, but of course, you can use it directly in your components if you'd like.
+--------------------------------------
+
+## Using State Models
+
+Rather than passing dispatch through the components, I use a separate model that deals with dispatch, API calls, etc, but of course, you can use it directly in your components if you'd like.
+
+	// model_application.js
 
 	import Store from './Store'
 	const dispatch = Store.dispatch
