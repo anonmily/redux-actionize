@@ -6,8 +6,16 @@
     "url": "https://github.com/anonmily/redux_actionize"
   },
   "main": "index.js",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": false,
+  "keywords": [
+    "react",
+    "redux",
+    "actions",
+    "reducers",
+    "namespace"
+    "reactjs"
+  ],
   "scripts": {
     "test": "make test"
   },
