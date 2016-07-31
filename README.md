@@ -8,7 +8,7 @@ Easier Redux Action/Reducer creation. Create actions and reducers all at once, i
 
 * **Define/use your action names only once, in one place.** Only write the action name once, preventing duplication and silly mistakes.
 
-* **Automatic namespacing for the generated actions.** Actions defined for a mountpoint (e.g. application) are automatically namespaced with the mountpoint name, so no more need to declare actions like "ORDER_LOADING", "ORDER_LOADED", "PRODUCTS_LOADING", "PRODUCTS_LOADED". Instead, you'll just register the 'loading' and 'loaded' actions on the actionized order state as well as 'loading' and 'loaded' actions on the actionized products state. The namespacing will be done for you automatically to avoid overlap of actions between mountpoints. You can also purposefully turn the namespacing off for actions intended to be shared among mountpoints.
+* **Automatic namespacing for the generated actions.** Actions defined for a mountpoint (e.g. application) are automatically namespaced with the mountpoint name, so no more need to declare actions like "ORDER_LOADING", "ORDER_LOADED", "PRODUCTS_LOADING", "PRODUCTS_LOADED". Instead, you'll just register the 'loading' and 'loaded' actions on the actionized order state as well as 'loading' and 'loaded' actions on the actionized products state. The namespacing will be done for you automatically to avoid overlap of actions between mountpoints. You can also purposefully turn the namespacing off for actions intended to be shared.
 
 [GITHUB:	https://github.com/anonmily/redux-actionize](https://github.com/anonmily/redux-actionize)
 
