@@ -36,7 +36,7 @@ First, let's declare our new actionized state. We'll be defining the actions cre
 
 	import _ from 'lodash'
 	import redux_actionize from 'redux-actionize'
-
+	
 	// redux_actionize takes the mountpoint/namespace name, and the initial state as parameters
 	var ApplicationState = redux_actionize(
 		'application', 
@@ -71,6 +71,8 @@ First, let's declare our new actionized state. We'll be defining the actions cre
 			}
 		})
 
+If the creator is falsy/null, then it will be as if function(){ return {} } were provided as the creator, and no extra data will be added to the generated action. Thus, for the 'LOGIN_FAILURE' action/event defined above, the generated action object will be { type: 'applicatinon_login_failure' }.
+
 Then, let's add the generated reducer for this actionized state to our root reducer.
 
 	import { combineReducers } from 'redux'
@@ -86,7 +88,15 @@ We can use and dispatch the action creators directly, one by one:
 	dispatch( ApplicationState.actions.login_success(user, token) )
 
 
-Or we can pass in a dispatch function to **get_actions**, which will automatically wrap our actions in a dispatch for us. Rather than passing dispatch through my components, I like to have a separate model that deals with dispatch, API calls, etc, but of course, you can use it directly in your components if you'd like.
+Or we can pass in a dispatch function to **get_actions**, which will automatically wrap our actions in a dispatch for us. 
+
+	import ApplicationState from './application_state'
+	const Application = ApplicationState.get_actions(dispatch)
+    
+	Application.login_success( result.user, result.token )
+	Application.login_failure()
+
+Rather than passing dispatch through my components, I like to have a separate model that deals with dispatch, API calls, etc, but of course, you can use it directly in your components if you'd like.
 
 	import Store from './Store'
 	const dispatch = Store.dispatch
@@ -147,4 +157,4 @@ Note: Action names are not case sensitive and will all be converted to lowercase
 | Version | Notes                                                                                                                                                                            |
 |---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | _1.0.0_   | Initial release |
-| _1.0.3_   | Minor README and package.json fixes |
+| _1.0.4_   | Minor README and package.json fixes |

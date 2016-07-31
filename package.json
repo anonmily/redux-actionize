@@ -6,7 +6,7 @@
     "url": "https://github.com/anonmily/redux_actionize"
   },
   "main": "index.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": false,
   "scripts": {
     "test": "make test"
