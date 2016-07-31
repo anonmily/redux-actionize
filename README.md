@@ -127,7 +127,7 @@ Note: Action names are not case sensitive and will all be converted to lowercase
 	
 * **Actionized State**: what ReduxActionize returns:
 	+ mountpoint (*String*)
-	+ initial_state (*String*)
+	+ initial_state (*Object*)
 	+ debug (*Boolean*)
 	+ reducers (*Object*)
 	+ actions (*Object*)
@@ -147,4 +147,4 @@ Note: Action names are not case sensitive and will all be converted to lowercase
 | Version | Notes                                                                                                                                                                            |
 |---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | _1.0.0_   | Initial release |
-| _1.0.2_   | Minor README and package.json fixes |
+| _1.0.3_   | Minor README and package.json fixes |
