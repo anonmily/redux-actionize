@@ -14,7 +14,7 @@ function lower (str) {
  *
  * @param {string} name - name of the action
  *
- * @param {function} action_creator - A function of form: function(params){ return { ... } } (Do not include the "_type" parameter, it will be added automatically) 
+ * @param {function} action_creator - A function of form: function(params){ return { ... } } (Do not include the "type" parameter, it will be added automatically) 
  *
  */
 export function ActionCreator(name, action_creator){
@@ -36,11 +36,11 @@ export function ActionCreator(name, action_creator){
 		if( !action_data || is.not.object(action_data) ){
 
 			console.error(action_data)
-			throw new TypeError('ActionCreator: Result of action_creator with arguments=' + arguments.join(',') + 'is not an object.')
+			throw new TypeError(`ActionCreator : ${name} : Result of action_creator with arguments=${args.join(',')} is not an object.`)
 
 		}
 
-		action_data._type = name
+		action_data.type = name
 		return action_data
 	}
 }
@@ -55,10 +55,12 @@ export function ActionCreator(name, action_creator){
  *
  * 
  */
-var ReduxActionize = function(state_mountpoint, initial_state){
-	return {
+var ReduxActionize = function(state_mountpoint, initial_state, options){
+
+	var Actionize = {
 		mountpoint: state_mountpoint,
 		initial_state: initial_state,
+		debug: options ? options.debug : false,
 
 		/*
 		 * Expect reducers to be of form:
@@ -91,20 +93,40 @@ var ReduxActionize = function(state_mountpoint, initial_state){
 		 *
 		 */
 		register: function(config){
-			var { action, creator, reducer } = config
+			var { action, creator, reducer, global } = config
+			var { mountpoint } = this
 
-			// e.g. application.actions.login(username, password)
-			this.actions[ lower(action) ] = ActionCreator( lower(action), creator)
+			/* Example of action mapping
+			 * 
+			 * Actions will be namespaced with the mountpoint name to prevent collisions, unless the global setting is set.
+			 *
+			 * mountpoint=application, action=login 
+			 * 	--> application.actions.login(username, password) 
+			 *	--> action = 'application_login'
+			 * 
+			 * If global option is set, the action name will not be namespaced:
+			 * 
+			 * mountpoint=application, action=login 
+			 * 	--> application.actions.login(username, password) 
+			 *	--> action = 'login'
+			 */
+
+			if( global ){
+				var action_name = lower(action)
+			}else{
+				var action_name = lower(mountpoint + '_' + action)
+			}
+			this.actions[ lower(action) ] = ActionCreator(action_name, creator)
 			
-			// e.g. application.reducers.login(state,)
-			this.reducers[ lower(action) ] = reducer
+			// e.g. application.reducers.application_login(state,)
+			this.reducers[ action_name ] = reducer
 			return this
 		},
 
 		get_reducer: function(){
-			var { initial_state, reducers } = this
+			var { initial_state, reducers, mountpoint } = this
 			return function(state=initial_state, action){
-				let current_reducer = reducers[action._type]
+				let current_reducer = reducers[action.type]
 				if( current_reducer ){
 					return current_reducer(state, action)
 				}else{
@@ -114,11 +136,17 @@ var ReduxActionize = function(state_mountpoint, initial_state){
 		},
 
 		get_actions: function(dispatch){
-			var { actions } = this
+			var { actions, debug, mountpoint } = this
 
 			var wrapped_actions = {}
 			Object.keys(actions).forEach( action => {
 				wrapped_actions[action] = function(){
+
+					if( debug ){
+						console.log('---------')
+						console.log('Executing Action: ' + action)
+						console.log(arguments)
+					}
 					dispatch( actions[action].apply( this, arguments ) )
 				}
 			})
@@ -126,5 +154,9 @@ var ReduxActionize = function(state_mountpoint, initial_state){
 			return wrapped_actions
 		}
 	}
+
+	Actionize.reducer = Actionize.get_reducer
+
+	return Actionize
 }
 export default ReduxActionize
