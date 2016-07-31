@@ -1,7 +1,13 @@
 {
   "name": "redux-actionize",
-  "version": "0.0.0",
-  "private": true,
+  "description": "Simple Redux Action/Reducer creator. Create actions and reducers all at once, in one place, for less duplication and cleaner, more readable code",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anonmily/redux_actionize"
+  },
+  "main": "index.js",
+  "version": "1.0.0",
+  "private": false,
   "scripts": {
     "test": "make test"
   },
