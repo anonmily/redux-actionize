@@ -1,7 +1,7 @@
 const expect = require('chai').expect
 import _ from 'lodash'
 
-import { ActionCreator } from '../actionize'
+import ActionCreator from '../es6/action_creator'
 import { MOCK_USERNAME, MOCK_PASSWORD } from './mocks'
 
 // Mock up the Redux dispatch function

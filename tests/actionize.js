@@ -1,7 +1,7 @@
 const expect = require('chai').expect
 import _ from 'lodash'
 
-import ReduxActionize, { ActionCreator } from '../actionize'
+import ReduxActionize, { ActionCreator } from '../es6'
 
 import { MOCK_USERNAME, MOCK_PASSWORD, MOCK_APP_INITIAL_STATE, dispatch } from './mocks'
 
@@ -164,7 +164,7 @@ describe('ReduxActionize:', () => {
 		})
 	})
 
-	describe('Chained registration', done => {
+	describe('chained registration', done => {
 
 		var application_state = ReduxActionize('application', MOCK_APP_INITIAL_STATE)
 			application_state
