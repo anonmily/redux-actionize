@@ -54,7 +54,7 @@ We'll be defining the actions creators and reducers all in one place, so it's ea
 	import _ from 'lodash'
 	import Reaction from 'redux-actionize'
 	
-	// redux_actionize takes the mountpoint/namespace name, and the initial state as parameters, returning a new Reaction Definition
+	// redux_actionize takes the initial state and returns a new Reaction Definition
 	export default Reaction({
 		user: null,
 		token: null,
