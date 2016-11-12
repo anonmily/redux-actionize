@@ -167,12 +167,12 @@ Rather than passing dispatch through the components, using a separate model that
 
 # API
 **ReduxActionize**: the factory function returned when you import the package
-	+ **Parameters**
-		- Initial State (*Object*)
-		- Options (*Object*)
-			* **debug** [true/false] (optional): print logs for every called action?
-			* **namespace** (optional): namespace the created actions with a prefix?
-	
+* **Parameters**
+	+ Initial State (*Object*)
+	+ Options (*Object*)
+		* **debug** [true/false] (optional): print logs for every called action?
+		* **namespace** (optional): namespace the created actions with a prefix?
+
 **Actionized State**: what ReduxActionize returns:
 Properties
 * initial_state (*Object*)
