@@ -5,4 +5,4 @@ test:
 
 build:
 	# Just compile ES6
-	babel es6 -d es5 --presets es2015
+	babel es6 -d es5

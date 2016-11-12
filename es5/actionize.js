@@ -1,12 +1,16 @@
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-	value: true
+  value: true
 });
 
 var _simplyIs = require('simply-is');
 
 var _simplyIs2 = _interopRequireDefault(_simplyIs);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
 
 var _utils = require('./utils');
 
@@ -16,129 +20,137 @@ var _action_creator2 = _interopRequireDefault(_action_creator);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 /*
  *	Redux Actions
  *		- action names are NOT case sensitive. Action names passed in are all converted to lowercase. Thus, registering an action with name='LOGIN', name='login', or name='Login' is the same: they will all to the same action/reducer name: 'login'
  *
- *	@param {string} state_mountpoint - name of the global state mount point for the reducer (e.g. application, orders)
- *
  *	@param {object} initial_state - the initial state to iniialize this mountpoint with
- *
- * 
+ *	@param {object} options - extra options to configure the reaction
+ *		{string} namespace
+ * 		{string} type (CAMELCASE (default) | UNDERSCORE)
+ *		{boolean} debug
  */
-var ReduxActionize = function ReduxActionize(state_mountpoint, initial_state, options) {
 
-	var Actionize = {
-		mountpoint: state_mountpoint,
-		initial_state: initial_state,
-		debug: options ? options.debug : false,
+var Reaction = function Reaction() {
+  var config = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-		/*
-   * Expect reducers to be of form:
-   *
-   *	{ 
-   *		'VERSION': function(state,action){...},
-   *	}
-   *
-   */
-		reducers: {},
+  _classCallCheck(this, Reaction);
 
-		/*
-   * Expect actions to be of form:
-   *
-   *	{ 
-   *		'VERSION': function(...){ return {...} }
-   *	}
-   *
-   */
-		actions: {},
+  _initialiseProps.call(this);
 
-		/*
-   *	Register new action and expected result
-   *	
-   *	@param {string} action_name - name of the action
-   *
-   *	@param {function} action_creator - A function of form: function(params){ return { data: ""} } (Do not include the "type" parameter)
-   *
-   *	@param {function} reducer - A function of form: function(state, action){ return new_state }
-   *
-   */
-		register: function register(config) {
-			var action = config.action;
-			var creator = config.creator;
-			var reducer = config.reducer;
-			var global = config.global;
-			var mountpoint = this.mountpoint;
+  this._namespace = config.namespace || false;
+  this.initial_state = config.initialState || config.initial_state || {};
+  this.debug = config.debug || false;
+  this._type = config.type || "CAMELCASE";
+  this.reducers = {};
+  this.actions = {};
+}; // end Reaction class
 
-			/* Example of action mapping
-    * 
-    * Actions will be namespaced with the mountpoint name to prevent collisions, unless the global setting is set.
-    *
-    * mountpoint=application, action=login 
-    * 	--> application.actions.login(username, password) 
-    *	--> action = 'application_login'
-    * 
-    * If global option is set, the action name will not be namespaced:
-    * 
-    * mountpoint=application, action=login 
-    * 	--> application.actions.login(username, password) 
-    *	--> action = 'login'
-    */
+var _initialiseProps = function _initialiseProps() {
+  var _this = this;
 
-			if (global) {
-				var action_name = (0, _utils.lower)(action);
-			} else {
-				var action_name = (0, _utils.lower)(mountpoint + '_' + action);
-			}
-			this.actions[(0, _utils.lower)(action)] = (0, _action_creator2.default)(action_name, creator);
+  this.get_action_name = function (action) {
+    var global = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
-			// e.g. application.reducers.application_login(state,)
-			this.reducers[action_name] = reducer;
-			return this;
-		},
+    var namespace = _this._namespace,
+        is_camelcase = _this._type === "CAMELCASE";
+    if (namespace && !global) {
+      if (is_camelcase) {
+        return _lodash2.default.camelCase(_lodash2.default.camelCase(namespace) + " " + action);
+      } else {
+        return (0, _utils.to_underscore)(_this._namespace) + "_" + (0, _utils.to_underscore)(action);
+      }
+    } else {
+      namespace = "";
+    }
+  };
 
-		get_reducer: function get_reducer() {
-			var initial_state = this.initial_state;
-			var reducers = this.reducers;
-			var mountpoint = this.mountpoint;
+  this.getActionName = this.get_action_name;
 
-			return function () {
-				var state = arguments.length <= 0 || arguments[0] === undefined ? initial_state : arguments[0];
-				var action = arguments[1];
+  this.type = function (name_type) {
+    _this._type = (0, _utils.upper)(name_type);
+    return _this;
+  };
 
-				var current_reducer = reducers[action.type];
-				if (current_reducer) {
-					return current_reducer(state, action);
-				} else {
-					return state;
-				}
-			};
-		},
+  this.setType = this.type;
+  this.set_type = this.type;
 
-		get_actions: function get_actions(dispatch) {
-			var actions = this.actions;
-			var debug = this.debug;
-			var mountpoint = this.mountpoint;
+  this.namespace = function (namespace) {
+    _this._namespace = namespace;
+    return _this;
+  };
 
-			var wrapped_actions = {};
-			Object.keys(actions).forEach(function (action) {
-				wrapped_actions[action] = function () {
+  this.setNamespace = this.namespace;
+  this.set_namespace = this.namespace;
 
-					if (debug) {
-						console.log('---------');
-						console.log('Executing Action: ' + action);
-						console.log(arguments);
-					}
-					dispatch(actions[action].apply(this, arguments));
-				};
-			});
+  this.register = function (config) {
+    var action = config.action;
+    var creator = config.creator;
+    var reducer = config.reducer;
+    var global = config.global;
 
-			return wrapped_actions;
-		}
-	};
+    var action_name = _this.get_action_name(action, global),
+        clean_action_name = _this._type === "CAMELCASE" ? _lodash2.default.camelCase(action) : (0, _utils.to_underscore)(action);
+    _this.actions[clean_action_name] = (0, _action_creator2.default)(action_name, creator);
+    _this.reducers[action_name] = reducer;
+    return _this;
+  };
 
-	Actionize.reducer = Actionize.get_reducer;
+  this.reducer = function () {
+    var initial_state = _this.initial_state;
+    var reducers = _this.reducers;
+    var mountpoint = _this.mountpoint;
 
-	return Actionize;
+    return function () {
+      var state = arguments.length <= 0 || arguments[0] === undefined ? initial_state : arguments[0];
+      var action = arguments[1];
+
+      var current_reducer = reducers[action.type];
+      if (current_reducer) {
+        return current_reducer(state, action);
+      } else {
+        return state;
+      }
+    };
+  };
+
+  this.get_reducer = this.reducer;
+  this.getReducer = this.reducer;
+
+  this.get_actions = function (dispatch) {
+    var actions = _this.actions;
+    var debug = _this.debug;
+    var mountpoint = _this.mountpoint;
+    var type = _this.type;
+
+    var wrapped_actions = {};
+    Object.keys(actions).forEach(function (action) {
+      wrapped_actions[action] = function () {
+
+        if (debug) {
+          console.log('---------');
+          console.log('Executing Action: ' + action);
+          console.log(arguments);
+        }
+        dispatch(actions[action].apply(this, arguments));
+      };
+    });
+    return wrapped_actions;
+  };
+
+  this.getActions = this.actions;
+};
+
+var ReduxActionize = function ReduxActionize(initial_state) {
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+  return new Reaction({
+    initial_state: initial_state,
+    namespace: options.namespace,
+    type: options.type,
+    debug: options.debug
+  });
 };
 exports.default = ReduxActionize;

@@ -36,22 +36,22 @@ class Reaction{
  		}else{
  			namespace = ""
  		}
- 	}
- 	getActionName = this.get_action_name
+ 	};
+ 	getActionName = this.get_action_name;
 
  	type = (name_type) => {
  		this._type = upper(name_type)
  		return this
- 	}
- 	setType = this.type
- 	set_type = this.type
+ 	};
+ 	setType = this.type;
+ 	set_type = this.type;
 
  	namespace = (namespace) => {
  		this._namespace = namespace
  		return this
- 	}
- 	setNamespace = this.namespace
- 	set_namespace = this.namespace
+ 	};
+ 	setNamespace = this.namespace;
+ 	set_namespace = this.namespace;
 
  	register = (config) => {
  		var { action, creator, reducer, global } = config
@@ -60,7 +60,7 @@ class Reaction{
 		this.actions[ clean_action_name ] = ActionCreator(action_name, creator)
 		this.reducers[ action_name ]	=  reducer
 		return this
- 	}
+ 	};
 
  	reducer = () => {
 		var { initial_state, reducers, mountpoint } = this
@@ -72,9 +72,9 @@ class Reaction{
 				return state
 			}
 		}
-	}
-	get_reducer = this.reducer
-	getReducer = this.reducer
+	};
+	get_reducer = this.reducer;
+	getReducer = this.reducer;
 
 	get_actions = (dispatch) => {
 		var { actions, debug, mountpoint, type } = this
@@ -91,8 +91,8 @@ class Reaction{
 			}
 		})
 		return wrapped_actions
-	}
-	getActions = this.actions
+	};
+	getActions = this.actions;
 } // end Reaction class
 
 var ReduxActionize = function(initial_state, options={}){
