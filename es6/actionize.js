@@ -92,7 +92,7 @@ class Reaction{
 		})
 		return wrapped_actions
 	};
-	getActions = this.actions;
+	getActions = this.get_actions;
 } // end Reaction class
 
 var ReduxActionize = function(initial_state, options={}){
