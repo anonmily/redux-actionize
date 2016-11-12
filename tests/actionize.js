@@ -6,30 +6,31 @@ import ReduxActionize, { ActionCreator } from '../es6'
 import { MOCK_USERNAME, MOCK_PASSWORD, MOCK_APP_INITIAL_STATE, dispatch } from './mocks'
 
 describe('ReduxActionize:', () => {
-	var application_state = ReduxActionize('application', MOCK_APP_INITIAL_STATE)
-	application_state.register({
-		action: 'login',
-		creator: function(username, password){
-			return {
-				username: username,
-				password: password
+	var application_state = ReduxActionize(MOCK_APP_INITIAL_STATE)
+		.namespace('application')
+		.register({
+			action: 'login',
+			creator: function(username, password){
+				return {
+					username: username,
+					password: password
+				}
+			},
+			reducer: function(state, action){
+				let { username, password } = action
+				return _.assign({}, state, {
+					username,
+					password,
+					authorized: true
+				})
 			}
-		},
-		reducer: function(state, action){
-			let { username, password } = action
-			return _.assign({}, state, {
-				username,
-				password,
-				authorized: true
-			})
-		}
-	})
+		})
 
-	var login_action_reducer = application_state.reducers.application_login,
+	var login_action_reducer = application_state.reducers.applicationLogin,
 		login_action_creator = application_state.actions.login
 
 	it('should have mountpoint saved', done =>{
-		expect(application_state.mountpoint).to.equal('application')
+		expect(application_state._namespace).to.equal('application')
 		done()
 	})
 
@@ -43,7 +44,7 @@ describe('ReduxActionize:', () => {
 		it('should add action creator', done => {
 			expect( login_action_creator ).to.be.a('function')
 			expect( login_action_creator( MOCK_USERNAME, MOCK_PASSWORD ) ).to.deep.equal({
-				type: 'application_login',
+				type: 'applicationLogin',
 				username: MOCK_USERNAME,
 				password: MOCK_PASSWORD
 			})
@@ -68,8 +69,8 @@ describe('ReduxActionize:', () => {
 		})
 
 		it('should not be case sensitive', done => {
-			var app_state_lowercase = ReduxActionize('application', MOCK_APP_INITIAL_STATE),
-				app_state_propercase = ReduxActionize('application', MOCK_APP_INITIAL_STATE)
+			var app_state_lowercase = ReduxActionize(MOCK_APP_INITIAL_STATE).namespace('application'),
+				app_state_propercase = ReduxActionize(MOCK_APP_INITIAL_STATE).namespace('application')
 
 			app_state_lowercase.register({
 				action: 'login',
@@ -111,13 +112,13 @@ describe('ReduxActionize:', () => {
 			expect( app_state_propercase.actions.login ).to.be.a('function')
 
 			expect( app_state_lowercase.actions.login( MOCK_USERNAME, MOCK_PASSWORD ) ).to.deep.equal({
-				type: 'application_login',
+				type: 'applicationLogin',
 				username: MOCK_USERNAME,
 				password: MOCK_PASSWORD
 			})
 
 			expect( app_state_propercase.actions.login( MOCK_USERNAME, MOCK_PASSWORD ) ).to.deep.equal({
-				type: 'application_login',
+				type: 'applicationLogin',
 				username: MOCK_USERNAME,
 				password: MOCK_PASSWORD
 			})
@@ -166,8 +167,8 @@ describe('ReduxActionize:', () => {
 
 	describe('chained registration', done => {
 
-		var application_state = ReduxActionize('application', MOCK_APP_INITIAL_STATE)
-			application_state
+		var application_state = ReduxActionize(MOCK_APP_INITIAL_STATE)
+				.namespace('application')
 				.register({
 					action: 'login',
 					creator: function(username, password){
@@ -198,9 +199,9 @@ describe('ReduxActionize:', () => {
 					}
 				})
 
-		var login_action_reducer = application_state.reducers.application_login,
+		var login_action_reducer = application_state.reducers.applicationLogin,
 			login_action_creator = application_state.actions.login,
-			logout_action_reducer = application_state.reducers.application_logout,
+			logout_action_reducer = application_state.reducers.applicationLogout,
 			logout_action_creator = application_state.actions.logout
 
 			it('should add action creators', done => {
@@ -208,11 +209,11 @@ describe('ReduxActionize:', () => {
 				expect( logout_action_creator ).to.be.a('function')
 
 				expect( login_action_creator( MOCK_USERNAME, MOCK_PASSWORD ) ).to.deep.equal({
-					type: 'application_login',
+					type: 'applicationLogin',
 					username: MOCK_USERNAME,
 					password: MOCK_PASSWORD
 				})
-				expect( logout_action_creator() ).to.deep.equal({ type: 'application_logout' })
+				expect( logout_action_creator() ).to.deep.equal({ type: 'applicationLogout' })
 
 				done()
 			})
@@ -256,6 +257,62 @@ describe('ReduxActionize:', () => {
 		it('should run the action creator for the specified action name, then run dispatch with the resulting action', done => {
 			application_actions.login(MOCK_USERNAME, MOCK_PASSWORD)
 			done()
+		})
+	})
+
+	describe('use underscored action names', () => {
+
+		var application_state = ReduxActionize(MOCK_APP_INITIAL_STATE)
+			.namespace('application')
+			.type('underscore')
+			.register({
+				action: 'admin login',
+				creator: function(username, password){
+					return {
+						username: username,
+						password: password
+					}
+				},
+				reducer: function(state, action){
+					let { username, password } = action
+					return _.assign({}, state, {
+						username,
+						password,
+						authorized: true
+					})
+				}
+			})
+
+		var login_action_reducer = application_state.reducers.application_admin_login,
+			login_action_creator = application_state.actions.admin_login
+
+		it('action registration', done => {
+
+			expect( login_action_creator( MOCK_USERNAME, MOCK_PASSWORD ) ).to.deep.equal({
+				type: 'application_admin_login',
+				username: MOCK_USERNAME,
+				password: MOCK_PASSWORD
+			})
+
+			expect(login_action_reducer).to.exist
+			done()
+
+		})
+
+		describe('get_actions', () => {
+
+			var application_actions = application_state.get_actions(dispatch)
+
+			it('should return an object', done => {
+				expect(application_actions).to.be.a('object')
+				expect(Object.keys(application_actions)).to.deep.equal(['admin_login'])
+				done()
+			})
+
+			it('should run the action creator for the specified action name, then run dispatch with the resulting action', done => {
+				application_actions.admin_login(MOCK_USERNAME, MOCK_PASSWORD)
+				done()
+			})
 		})
 	})
 })

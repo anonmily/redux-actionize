@@ -1,119 +1,106 @@
 import is from 'simply-is'
-import { upper, lower } from './utils'
+import _ from 'lodash'
+
+import { upper, lower, to_underscore } from './utils'
 import ActionCreator from './action_creator'
 
 /*
  *	Redux Actions
  *		- action names are NOT case sensitive. Action names passed in are all converted to lowercase. Thus, registering an action with name='LOGIN', name='login', or name='Login' is the same: they will all to the same action/reducer name: 'login'
  *
- *	@param {string} state_mountpoint - name of the global state mount point for the reducer (e.g. application, orders)
- *
  *	@param {object} initial_state - the initial state to iniialize this mountpoint with
- *
- * 
+ *	@param {object} options - extra options to configure the reaction
+ *		{string} namespace
+ * 		{string} type (CAMELCASE (default) | UNDERSCORE)
+ *		{boolean} debug
  */
-var ReduxActionize = function(state_mountpoint, initial_state, options){
+class Reaction{
+ 	constructor(config={}){
+ 		this._namespace = config.namespace || false
+ 		this.initial_state = config.initialState || config.initial_state || {}
+ 		this.debug = config.debug || false
+ 		this._type = config.type || "CAMELCASE"
+ 		this.reducers = {}
+ 		this.actions = {}
+ 	}
+ 	
+ 	get_action_name = (action, global=false) => {
+ 		var namespace = this._namespace,
+ 			is_camelcase = this._type === "CAMELCASE"
+ 		if(namespace && !global){
+ 			if( is_camelcase ){
+ 				return _.camelCase(_.camelCase(namespace) + " " + action)
+ 			}else{
+ 				return to_underscore(this._namespace) + "_" + to_underscore(action)
+ 			}
+ 		}else{
+ 			namespace = ""
+ 		}
+ 	}
+ 	getActionName = this.get_action_name
 
-	var Actionize = {
-		mountpoint: state_mountpoint,
-		initial_state: initial_state,
-		debug: options ? options.debug : false,
+ 	type = (name_type) => {
+ 		this._type = upper(name_type)
+ 		return this
+ 	}
+ 	setType = this.type
+ 	set_type = this.type
 
-		/*
-		 * Expect reducers to be of form:
-		 *
-		 *	{ 
-		 *		'VERSION': function(state,action){...},
-		 *	}
-		 *
-		 */
-		reducers: {},
+ 	namespace = (namespace) => {
+ 		this._namespace = namespace
+ 		return this
+ 	}
+ 	setNamespace = this.namespace
+ 	set_namespace = this.namespace
 
-		/*
-		 * Expect actions to be of form:
-		 *
-		 *	{ 
-		 *		'VERSION': function(...){ return {...} }
-		 *	}
-		 *
-		 */
-		actions: {},
+ 	register = (config) => {
+ 		var { action, creator, reducer, global } = config
+		var action_name = this.get_action_name(action, global),
+			clean_action_name = this._type === "CAMELCASE" ? _.camelCase(action) : to_underscore(action)
+		this.actions[ clean_action_name ] = ActionCreator(action_name, creator)
+		this.reducers[ action_name ]	=  reducer
+		return this
+ 	}
 
-		/*
-		 *	Register new action and expected result
-		 *	
-		 *	@param {string} action_name - name of the action
-		 *
-		 *	@param {function} action_creator - A function of form: function(params){ return { data: ""} } (Do not include the "type" parameter)
-		 *
-		 *	@param {function} reducer - A function of form: function(state, action){ return new_state }
-		 *
-		 */
-		register: function(config){
-			var { action, creator, reducer, global } = config
-			var { mountpoint } = this
-
-			/* Example of action mapping
-			 * 
-			 * Actions will be namespaced with the mountpoint name to prevent collisions, unless the global setting is set.
-			 *
-			 * mountpoint=application, action=login 
-			 * 	--> application.actions.login(username, password) 
-			 *	--> action = 'application_login'
-			 * 
-			 * If global option is set, the action name will not be namespaced:
-			 * 
-			 * mountpoint=application, action=login 
-			 * 	--> application.actions.login(username, password) 
-			 *	--> action = 'login'
-			 */
-
-			if( global ){
-				var action_name = lower(action)
+ 	reducer = () => {
+		var { initial_state, reducers, mountpoint } = this
+		return function(state=initial_state, action){
+			let current_reducer = reducers[action.type]
+			if( current_reducer ){
+				return current_reducer(state, action)
 			}else{
-				var action_name = lower(mountpoint + '_' + action)
+				return state
 			}
-			this.actions[ lower(action) ] = ActionCreator(action_name, creator)
-			
-			// e.g. application.reducers.application_login(state,)
-			this.reducers[ action_name ] = reducer
-			return this
-		},
-
-		get_reducer: function(){
-			var { initial_state, reducers, mountpoint } = this
-			return function(state=initial_state, action){
-				let current_reducer = reducers[action.type]
-				if( current_reducer ){
-					return current_reducer(state, action)
-				}else{
-					return state
-				}
-			}
-		},
-
-		get_actions: function(dispatch){
-			var { actions, debug, mountpoint } = this
-
-			var wrapped_actions = {}
-			Object.keys(actions).forEach( action => {
-				wrapped_actions[action] = function(){
-
-					if( debug ){
-						console.log('---------')
-						console.log('Executing Action: ' + action)
-						console.log(arguments)
-					}
-					dispatch( actions[action].apply( this, arguments ) )
-				}
-			})
-
-			return wrapped_actions
 		}
 	}
+	get_reducer = this.reducer
+	getReducer = this.reducer
 
-	Actionize.reducer = Actionize.get_reducer
+	get_actions = (dispatch) => {
+		var { actions, debug, mountpoint, type } = this
+		var wrapped_actions = {}
+		Object.keys(actions).forEach( action => {
+			wrapped_actions[action] = function(){
 
-	return Actionize
+				if( debug ){
+					console.log('---------')
+					console.log('Executing Action: ' + action)
+					console.log(arguments)
+				}
+				dispatch( actions[action].apply( this, arguments ) )
+			}
+		})
+		return wrapped_actions
+	}
+	getActions = this.actions
+} // end Reaction class
+
+var ReduxActionize = function(initial_state, options={}){
+	return new Reaction({ 
+		initial_state, 
+		namespace: options.namespace, 
+		type: options.type, 
+		debug: options.debug 
+	})
 }
 export default ReduxActionize

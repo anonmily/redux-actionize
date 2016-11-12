@@ -48,46 +48,52 @@ First, let's declare a new **Reaction Definition** for our application state (wh
 
 We'll be defining the actions creators and reducers all in one place, so it's easy to see both the trigger and the intended result of the action.
 
-	// application_state.js
+	// redux/application.js
+	// Declare the reactions for the application namespace
 
 	import _ from 'lodash'
-	import redux_actionize from 'redux-actionize'
+	import Reaction from 'redux-actionize'
 	
 	// redux_actionize takes the mountpoint/namespace name, and the initial state as parameters, returning a new Reaction Definition
-	var ApplicationState = redux_actionize(
-		'application', 
-		{
-			user: null,
-			token: null,
-			is_authorized: null,
-		}
-	)
-	
-	export default ApplicationState
-		.register({
-			action: 'LOGIN_SUCCESS',
-			creator: (user, token) => { return { user, token } },
-			reducer: function(state, action){
-				return _.assign({}, state, {
-					user: action.user,
-					token: action.token,
-					is_authorized: true,
-				})
-			}
-		})
-		.register({
-			action: 'LOGIN_FAILURE',
-			creator: null,
-			reducer: function(state, action){
-				return _.assign({}, state, {
-					user: null,
-					is_authorized: false,
-					token: null,
-				})
-			}
-		})
+	export default Reaction({
+		user: null,
+		token: null,
+		is_authorized: null,
+	})
 
-If the creator is falsy/null, then it will be as if function(){ return {} } were provided as the creator, and no extra data will be added to the generated action. Thus, for the 'LOGIN_FAILURE' action/event defined above, the generated action object will be { type: 'application_login_failure' }.
+	// Namespace actions, add "application" as the prefix to all actions
+	.namespace('application')
+
+	// By default, names/actions are camelCase, but you can also use underscores
+	.type('camelcase')	
+	
+	// Register a new reaction. Action names are case insensitive
+	.register({
+		action: 'Login Success',
+		creator: (user, token) => { return { user, token } },
+		reducer: (state, action) => {
+			return _.assign({}, state, {
+				user: action.user,
+				token: action.token,
+				is_authorized: true,
+			})
+		}
+	})
+	.register({
+		action: 'Login Failure',
+		creator: null,
+		reducer: (state, action) => {
+			return _.assign({}, state, {
+				user: null,
+				is_authorized: false,
+				token: null,
+			})
+		}
+	})
+
+--------------------------------------
+
+## Adding auto-generated reducers to root reducer
 
 Then, let's add the automatically generated reducer for this **State Reaction** to our root reducer.
 
@@ -96,29 +102,27 @@ Then, let's add the automatically generated reducer for this **State Reaction** 
 	import { combineReducers } from 'redux'
 	import ApplicationState from './application_state'
 	const root_reducer = combineReducers({
-			application: ApplicationState.get_reducer()
-		})
+		application: ApplicationState.reducer()
+	})
 
 We can then use and dispatch the action creators directly, one by one:
 
 	import ApplicationState from './application_state'
-	
-	dispatch( ApplicationState.actions.login_success(user, token) )
+	dispatch( ApplicationState.actions.loginSuccess(user, token) )
 
 
 Or we can pass in a dispatch function to **get_actions**, which will automatically wrap our actions in a dispatch for us. 
 
 	import ApplicationState from './application_state'
-	const Application = ApplicationState.get_actions(dispatch)
+	const Application = ApplicationState.getActions(dispatch)
     
-	Application.login_success( user, token )
-	Application.login_failure()
+	Application.loginSuccess( user, token )
+	Application.loginFailure()
 
 --------------------------------------
 
-## Using State Models
-
-Rather than passing dispatch through the components, I use a separate model that deals with dispatch, API calls, etc, but of course, you can use it directly in your components if you'd like.
+## 
+Rather than passing dispatch through the components, using a separate model that deals with dispatch, API calls, etc, can come in useful. But of course, you could still use it directly in your components if you'd like.
 
 	// model_application.js
 
@@ -147,32 +151,62 @@ Rather than passing dispatch through the components, I use a separate model that
 		}
 	}
 
-Note: Action names are not case sensitive and will all be converted to lowercase. Hence, even though we declared our action as 'LOGIN_SUCCESS', we can still use the action creator as ApplicationState.actions.login_success().
+--------------------------------------
+
+# Additional Notes
+* If the creator is falsy/null, then it will be as if function(){ return {} } were provided as the creator, and no extra data will be added to the generated action. 
+* Action names are case insensitive and will stripped of any whitespace and dashes. 
+* For example, the 'Login Failure' action declaration will automatically generate:
+	1. *Action creators* (depending on the naming type you've chosen)
+		* ApplicationState.loginFailure  --> { type: 'applicationLoginFailure' } or 
+		* ApplicationState.login_failure --> { type: 'application_login_failure' }
+	2. *Reducers*
+
 
 --------------------------------------
 
 # API
-* **ReduxActionize**: the factory function returned when you import the package
+**ReduxActionize**: the factory function returned when you import the package
 	+ **Parameters**
-		- Mountpoint/Namespace name (*String*)
 		- Initial State (*Object*)
 		- Options (*Object*)
 			* **debug** [true/false] (optional): print logs for every called action?
+			* **namespace** (optional): namespace the created actions with a prefix?
 	
-* **Actionized State**: what ReduxActionize returns:
-	+ mountpoint (*String*)
-	+ initial_state (*Object*)
-	+ debug (*Boolean*)
-	+ reducers (*Object*)
-	+ actions (*Object*)
-	+ **register(config)**
-		* **config.action**: Name of action (String)
-		* **config.creator**: A function of form: function(params){ return { data: ""} } (Do not include the "type" parameter)
-		* **config.reducer**: A function of form: function(state, action){ return new_state }
-		* **config.global** (optional): Namespace actions? Default true. (Boolean)
-	+ **get_reducer()**
-	+ **reducer()** (alias for get_reducer())
-	+ **get_actions()**
+**Actionized State**: what ReduxActionize returns:
+Properties
+* initial_state (*Object*)
+* debug (*Boolean*)
+* reducers (*Object*)
+* actions (*Object*)
+* _namespace (*String*) - currently set namespace
+* _type (*String*) - currently set naming type (CAMELCASE|UNDERSCORE)
+
+Set Namespace
+* **namespace** (*Function*) - set the namespace
+* **setNamespace** (*Function*) (alias for namespace())
+* **set_namespace (*Function*) (alias for namespace())
+
+Set Naming Type
+* **type** (*Function*) - set the naming type
+* **setType** (*Function*) (alias for type())
+* **set_type** (*Function*) (alias for type())
+
+Register a new reaction
+* **register(config)**
+	* **config.action**: Name of action (String)
+	* **config.creator**: A function of form: function(params){ return { data: ""} } (Do not include the "type" parameter)
+	* **config.reducer**: A function of form: function(state, action){ return new_state }
+	* **config.global** (optional): Namespace actions? Default true. (Boolean)
+
+Get reducer
+* **reducer()** (*Function*)
+* **get_reducer()** (*Function*)(alias for reducer())
+* **getReducer()** (*Function*)(alias for reducer())
+
+Get actions
+* **get_actions()** (*Function*)
+* **getActions()** (*Function*)(alias for get_actions)
 
 --------------------------------------
 
@@ -182,3 +216,4 @@ Note: Action names are not case sensitive and will all be converted to lowercase
 |---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | _1.0.0_   | Initial release |
 | _1.0.4_   | Minor README and package.json fixes |
+| _2.0.0_ 	| Allow separate setting of naming type (camelCase/underscore) and of namespace. | 
