@@ -140,7 +140,7 @@ var _initialiseProps = function _initialiseProps() {
     return wrapped_actions;
   };
 
-  this.getActions = this.actions;
+  this.getActions = this.get_actions;
 };
 
 var ReduxActionize = function ReduxActionize(initial_state) {
