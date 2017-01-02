@@ -56,7 +56,7 @@ var _initialiseProps = function _initialiseProps() {
 		var namespace = _this._namespace,
 		    is_camelcase = _this._type === "CAMELCASE";
 		if (!namespace || !!global) {
-			namespace = "";
+			namespace = "global";
 		}
 		if (is_camelcase) {
 			return _lodash2.default.camelCase(_lodash2.default.camelCase(namespace) + " " + action);

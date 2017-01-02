@@ -28,7 +28,7 @@ class Reaction{
  		var namespace = this._namespace,
  			is_camelcase = this._type === "CAMELCASE"
  		if(!namespace || !!global){
- 			namespace = ""
+ 			namespace = "global"
  		}
 		if( is_camelcase ){
 			return _.camelCase(_.camelCase(namespace) + " " + action)
