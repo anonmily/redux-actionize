@@ -27,15 +27,14 @@ class Reaction{
  	get_action_name = (action, global=false) => {
  		var namespace = this._namespace,
  			is_camelcase = this._type === "CAMELCASE"
- 		if(namespace && !global){
- 			if( is_camelcase ){
- 				return _.camelCase(_.camelCase(namespace) + " " + action)
- 			}else{
- 				return to_underscore(this._namespace) + "_" + to_underscore(action)
- 			}
- 		}else{
+ 		if(!namespace || !!global){
  			namespace = ""
  		}
+		if( is_camelcase ){
+			return _.camelCase(_.camelCase(namespace) + " " + action)
+		}else{
+			return to_underscore(namespace) + "_" + to_underscore(action)
+		}
  	};
  	getActionName = this.get_action_name;
 

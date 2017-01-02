@@ -17,7 +17,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function upper(str) {
     return str ? String(str).toUpperCase() : "";
 } // Miscellaneous Tools/Utilities
-
 function lower(str) {
     return str ? String(str).toLowerCase() : "";
 }
